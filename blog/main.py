@@ -1,8 +1,9 @@
+from typing import List
 from fastapi import FastAPI, Depends, status, Response, HTTPException
-from starlette.requests import Request
-from . import schemas, models
+from . import schemas, models, hash
 from .database import engine, SessionLocal
 from sqlalchemy.orm import Session
+
 
 app = FastAPI()
 
@@ -49,13 +50,13 @@ def update(id, request: schemas.Blog, db: Session = Depends(get_db)):
     return f'New settings for Blog {id} were altered!'
 
 
-@app.get('/blog')
+@app.get('/blog', response_model=List[schemas.ShowBlog])
 def all(db: Session = Depends(get_db)):
     blogs = db.query(models.Blog).all()
     return blogs
 
 
-@app.get('/blog/{id}', status_code=status.HTTP_200_OK)
+@app.get('/blog/{id}', status_code=status.HTTP_200_OK, response_model=schemas.ShowBlog)
 def show(id, response: Response, db: Session = Depends(get_db)):
     blog = db.query(models.Blog).filter(models.Blog.id == id).first()
     if not blog:
@@ -63,3 +64,13 @@ def show(id, response: Response, db: Session = Depends(get_db)):
         '''response.status_code = status.HTTP_404_NOT_FOUND
         return {'detail': f'Blog {id} is not in our database.'}'''
     return blog
+
+
+@app.post('/user')
+def create_user(request: schemas.User, db: Session = Depends(get_db)):
+
+    new_user = models.User(name=request.name, email=request.email, password=hash.encrypt(request.password))
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
