@@ -1,5 +1,5 @@
-from pydantic.main import BaseModel
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from .database import Base
 
 class Blog(Base):
@@ -9,6 +9,9 @@ class Blog(Base):
     title = Column(String)
     body = Column(String)
     #published = Column(Boolean)
+    user_id = Column(Integer, ForeignKey('Users.id') )
+
+    creator = relationship("User", back_populates="blogs")
 
 
 class User(Base):
@@ -18,3 +21,5 @@ class User(Base):
     name = Column(String)
     email = Column(String)
     password = Column(String)
+
+    blogs = relationship("Blog", back_populates="creator")
