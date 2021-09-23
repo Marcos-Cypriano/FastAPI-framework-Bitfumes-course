@@ -9,7 +9,7 @@ class Blog(Base):
     title = Column(String)
     body = Column(String)
     #published = Column(Boolean)
-    user_id = Column(Integer, ForeignKey('Users.id') )
+    user_id = Column(Integer, ForeignKey('Users.id'))
 
     creator = relationship("User", back_populates="blogs")
 
